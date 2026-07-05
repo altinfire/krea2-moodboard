@@ -182,70 +182,107 @@ $buildDate = Get-Date -Format 'yyyy-MM-dd'
 
 $html = @'
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Krea 2 Moodboard Reference</title>
 <style>
-  :root { --bg: #0a0a0a; --card: #151515; --border: #252525; --text: #e0e0e0; --dim: #888; --accent: #6366f1; --pill-bg: #1e1e2e; --pill-text: #a5b4fc; --heart: #f87171; }
+  :root {
+    --bg: #0b0b0d; --surface: #141417; --surface-2: #1b1b20; --surface-3: #25252c;
+    --border: #232329; --border-bright: #37373f;
+    --text: #e8e8ea; --dim: #9a9aa2; --faint: #6a6a73;
+    --accent: #e3a857; --accent-soft: rgba(227,168,87,0.55); --accent-ink: #171207;
+    --heart: #e0605f;
+    --serif: Georgia, 'Times New Roman', serif;
+    --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; max-width: 1400px; margin: 0 auto; }
-  body.tray-open { padding-bottom: 96px; }
-  h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 4px; }
-  .subtitle { color: var(--dim); font-size: 0.85rem; margin-bottom: 20px; }
-  .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-  .search-bar { flex: 1; min-width: 240px; padding: 10px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; outline: none; }
-  .search-bar:focus { border-color: var(--accent); }
-  .btn { padding: 9px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
-  .btn:hover { border-color: var(--accent); color: var(--accent); }
-  .facet-select { padding: 8px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.85rem; outline: none; cursor: pointer; }
-  .facet-select:focus { border-color: var(--accent); }
-  .facet-line { color: var(--dim); font-size: 0.72rem; letter-spacing: 0.02em; margin-bottom: 8px; }
+  html { color-scheme: dark; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); padding: 30px 24px 24px; max-width: 1400px; margin: 0 auto; }
+  body.tray-open { padding-bottom: 110px; }
+  ::selection { background: rgba(227,168,87,0.3); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .masthead { margin-bottom: 26px; }
+  .eyebrow { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; color: var(--faint); margin-bottom: 10px; }
+  h1 { font-family: var(--serif); font-size: 1.8rem; font-weight: 400; letter-spacing: 0.01em; margin-bottom: 8px; }
+  .subtitle { color: var(--dim); font-size: 0.85rem; line-height: 1.55; max-width: 72ch; }
+  .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .search-bar { flex: 1; min-width: 240px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.9rem; font-family: var(--sans); }
+  .search-bar::placeholder { color: var(--faint); }
+  .search-bar:focus { outline: none; border-color: var(--accent-soft); }
+  .btn { padding: 9px 14px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--dim); font-size: 0.83rem; font-family: var(--sans); cursor: pointer; white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
+  .btn:hover { color: var(--text); border-color: var(--border-bright); }
+  .facet-select { padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--dim); font-size: 0.8rem; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+  .facet-select:hover { color: var(--text); border-color: var(--border-bright); }
+  .facet-select:focus { outline: none; border-color: var(--accent-soft); color: var(--text); }
+  .facet-line { font-family: var(--mono); color: var(--faint); font-size: 0.68rem; letter-spacing: 0.02em; margin-bottom: 9px; }
   .facet-chip { cursor: pointer; }
-  .facet-chip:hover { color: var(--pill-text); text-decoration: underline; }
-  .staff-toggle { color: var(--dim); font-size: 0.85rem; display: flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; user-select: none; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; content-visibility: auto; contain-intrinsic-size: auto 340px; }
-  .card:hover { border-color: #444; }
-  .card-images { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
-  .card-images img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #222; cursor: zoom-in; }
-  .card-body { padding: 14px 16px; }
-  .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .title-btns { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-  .star { color: #fbbf24; font-size: 0.85rem; }
-  .copy-btn { background: none; border: 1px solid var(--border); color: var(--dim); padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
-  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .copy-btn.copied { color: #4ade80; border-color: #4ade80; }
-  .fav-btn { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 1.05rem; padding: 0 4px; line-height: 1; }
+  .facet-chip:hover { color: var(--accent); }
+  .staff-toggle { color: var(--dim); font-size: 0.83rem; display: flex; gap: 7px; align-items: center; cursor: pointer; white-space: nowrap; user-select: none; }
+  .staff-toggle:hover { color: var(--text); }
+  .staff-toggle input { accent-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.15s; content-visibility: auto; contain-intrinsic-size: auto 350px; }
+  .card:hover { border-color: var(--border-bright); }
+  .card-images { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--surface); }
+  .card-images img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: var(--surface-2); cursor: zoom-in; }
+  .card-body { padding: 14px 16px 16px; }
+  .card-title { font-family: var(--serif); font-size: 1.05rem; font-weight: 400; margin-bottom: 7px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .title-btns { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .star { color: var(--accent); font-size: 0.8rem; }
+  .copy-btn { background: none; border: 1px solid var(--border); color: var(--faint); padding: 3px 9px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; font-family: var(--sans); white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--border-bright); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent-soft); }
+  .fav-btn { background: none; border: none; color: var(--faint); cursor: pointer; font-size: 1.05rem; padding: 0 3px; line-height: 1; transition: color 0.15s; }
   .fav-btn:hover, .fav-btn.faved { color: var(--heart); }
-  .profile { color: var(--dim); font-size: 0.8rem; line-height: 1.45; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+  .profile { color: var(--dim); font-size: 0.8rem; line-height: 1.55; margin-bottom: 11px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
   .profile.open { -webkit-line-clamp: unset; }
-  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pill { background: var(--pill-bg); color: var(--pill-text); padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; white-space: nowrap; cursor: pointer; user-select: none; }
-  .pill:hover { outline: 1px solid var(--accent); }
-  .pill.sel { background: var(--accent); color: #fff; }
-  .count { color: var(--dim); font-size: 0.85rem; margin-bottom: 16px; }
-  .empty { color: var(--dim); font-size: 0.95rem; padding: 48px 0; text-align: center; }
-  footer { color: var(--dim); font-size: 0.78rem; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center; }
-  footer a { color: var(--pill-text); }
-  #tray { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); max-width: min(920px, 94vw); background: #151515f2; border: 1px solid #333; border-radius: 12px; padding: 10px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; z-index: 90; box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
-  .tray-label { color: var(--dim); font-size: 0.8rem; white-space: nowrap; }
-  #trayChips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 200px; }
-  .tray-chip { background: var(--pill-bg); color: var(--pill-text); padding: 3px 6px 3px 10px; border-radius: 20px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-  .chip-x { background: none; border: none; color: var(--pill-text); cursor: pointer; font-size: 0.95rem; padding: 0 2px; line-height: 1; }
-  .chip-x:hover { color: var(--heart); }
-  #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
-  #lb-img { max-width: min(90vw, 768px); max-height: 80vh; border-radius: 8px; }
-  #lb-caption { color: var(--dim); font-size: 0.85rem; }
-  .lb-nav { position: fixed; top: 50%; transform: translateY(-50%); background: #151515cc; border: 1px solid #333; color: var(--text); font-size: 1.6rem; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; line-height: 1; }
-  .lb-nav:hover { border-color: var(--accent); color: var(--accent); }
+  .pills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .pill { background: var(--surface-2); color: #b8b8c0; padding: 3px 9px; border-radius: 6px; font-size: 0.73rem; white-space: nowrap; cursor: pointer; user-select: none; transition: background-color 0.15s, color 0.15s; }
+  .pill:hover { background: var(--surface-3); color: var(--text); }
+  .pill.sel { background: var(--accent); color: var(--accent-ink); }
+  .count { font-family: var(--mono); color: var(--faint); font-size: 0.72rem; letter-spacing: 0.03em; margin: 14px 2px; }
+  .empty { color: var(--dim); font-size: 0.9rem; padding: 56px 0; text-align: center; }
+  footer { font-family: var(--mono); color: var(--faint); font-size: 0.7rem; letter-spacing: 0.02em; margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border); text-align: center; }
+  footer a { color: var(--dim); }
+  footer a:hover { color: var(--accent); }
+  #tray { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: max-content; max-width: min(920px, 94vw); background: rgba(20,20,23,0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--border-bright); border-radius: 14px; padding: 10px 12px 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; z-index: 90; box-shadow: 0 12px 40px rgba(0,0,0,0.55); }
+  .tray-label { font-family: var(--mono); color: var(--faint); font-size: 0.7rem; letter-spacing: 0.04em; white-space: nowrap; }
+  #trayChips { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; min-width: 200px; }
+  .tray-chip { background: rgba(227,168,87,0.13); color: #e6c48f; padding: 3px 6px 3px 9px; border-radius: 6px; font-size: 0.73rem; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .chip-x { background: none; border: none; color: inherit; opacity: 0.7; cursor: pointer; font-size: 0.95rem; padding: 0 2px; line-height: 1; }
+  .chip-x:hover { opacity: 1; color: var(--heart); }
+  #trayCopy { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  #trayCopy:hover { background: #ecb96e; border-color: #ecb96e; color: var(--accent-ink); }
+  #lightbox { position: fixed; inset: 0; background: rgba(9,9,11,0.93); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 100; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+  #lb-img { max-width: min(90vw, 768px); max-height: 80vh; border-radius: 6px; box-shadow: 0 24px 80px rgba(0,0,0,0.7); }
+  #lb-caption { display: flex; align-items: baseline; gap: 12px; }
+  #lb-title { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+  #lb-counter { font-family: var(--mono); font-size: 0.7rem; color: var(--faint); letter-spacing: 0.04em; }
+  .lb-nav { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(20,20,23,0.7); border: 1px solid var(--border-bright); color: var(--dim); font-size: 1.5rem; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; line-height: 1; transition: color 0.15s, border-color 0.15s; }
+  .lb-nav:hover { color: var(--text); border-color: var(--accent-soft); }
   #lb-prev { left: 16px; }
   #lb-next { right: 16px; }
-  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } body { padding: 12px; } }
+  @media (max-width: 640px) {
+    body { padding: 20px 14px 14px; }
+    .grid { grid-template-columns: 1fr; gap: 14px; }
+    h1 { font-size: 1.5rem; }
+    .masthead { margin-bottom: 20px; }
+    #tray { bottom: 10px; max-width: 96vw; padding: 10px 12px; }
+    .tray-label { flex-basis: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
 </style>
 
-<h1>Krea 2 Moodboard Reference</h1>
-<p class="subtitle">__COUNT__ preset moodboards from krea.ai (__STAFF__ staff picks) - keywords and taste profiles for Krea 2 prompting. Click keyword pills to build a combined prompt, click images to zoom, &hearts; to save favorites.</p>
+<header class="masthead">
+  <p class="eyebrow">__COUNT__ preset moodboards &middot; __STAFF__ staff picks &middot; data &amp; images from krea.ai</p>
+  <h1>Krea 2 Moodboard Reference</h1>
+  <p class="subtitle">Keywords and taste profiles for Krea 2 prompting. Click keywords to collect them into a combined prompt, click images to zoom, and click the heart to save favorites.</p>
+</header>
 <div class="controls">
-  <input class="search-bar" type="text" placeholder="Filter by title, keyword, or profile...  (press / to focus)" id="search">
-  <button class="btn" id="shuffleBtn" title="Show a fresh random selection">&#127922; Shuffle</button>
+  <input class="search-bar" type="text" placeholder="Search title, keywords, or taste profile &mdash; press /" id="search">
+  <button class="btn" id="shuffleBtn" title="Show a fresh random selection">Shuffle</button>
   <button class="btn" id="showAllBtn">Show all</button>
   <label class="staff-toggle"><input type="checkbox" id="staffOnly"> Staff picks</label>
   <label class="staff-toggle"><input type="checkbox" id="favOnly"> &hearts; Favorites</label>
@@ -258,7 +295,7 @@ $html = @'
 </div>
 <p class="count" id="count"></p>
 <div class="grid" id="grid"></div>
-<div class="empty" id="empty" style="display:none">No moodboards match. <button class="btn" id="clearBtn">Clear filters</button></div>
+<div class="empty" id="empty" style="display:none">No boards match these filters. <button class="btn" id="clearBtn">Clear filters</button></div>
 <footer>Unofficial community reference &middot; moodboard data &amp; images from <a href="https://www.krea.ai">krea.ai</a> preset moodboards &middot; built __BUILDDATE__</footer>
 
 <div id="tray" style="display:none">
@@ -271,7 +308,7 @@ $html = @'
 <div id="lightbox">
   <button class="lb-nav" id="lb-prev" title="Previous (&larr;)">&#8249;</button>
   <img id="lb-img" src="" alt="">
-  <div id="lb-caption"></div>
+  <div id="lb-caption"><span id="lb-title"></span><span id="lb-counter"></span></div>
   <button class="lb-nav" id="lb-next" title="Next (&rarr;)">&#8250;</button>
 </div>
 
@@ -281,6 +318,7 @@ const DATA = DATA_RAW.sort((a, b) => a.title.localeCompare(b.title));
 const SAMPLE_N = 60;
 const FACET_KEYS = ['medium','mood','palette','subject'];
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = n => n.toLocaleString('en-US');
 const grid = document.getElementById('grid');
 grid.innerHTML = DATA.map((m, i) => `<div class="card" data-i="${i}">
   <div class="card-images">${m.images.map(src =>
@@ -291,7 +329,7 @@ grid.innerHTML = DATA.map((m, i) => `<div class="card" data-i="${i}">
       <span>${esc(m.title)}${m.staffPick ? ' <span class="star" title="Staff pick">&#9733;</span>' : ''}</span>
       <span class="title-btns">
         <button class="fav-btn" title="Add to favorites">&#9825;</button>
-        <button class="copy-btn">Copy Keywords</button>
+        <button class="copy-btn">Copy keywords</button>
       </span>
     </div>
     ${m.facets ? `<p class="facet-line">${FACET_KEYS.filter(k => m.facets[k] && m.facets[k] !== 'none').map(k =>
@@ -377,8 +415,8 @@ function render() {
   emptyEl.style.display = visible.length ? 'none' : '';
   showAllBtn.style.display = sampleSet ? '' : 'none';
   countEl.textContent = sampleSet
-    ? `Showing ${visible.length} random of ${matches.length} moodboards - shuffle for a new set, or search/filter to browse everything`
-    : `Showing ${visible.length} of ${DATA.length} moodboards`;
+    ? `showing ${fmt(visible.length)} random of ${fmt(matches.length)} boards · shuffle for a new set, or search and filter to browse everything`
+    : `showing ${fmt(visible.length)} of ${fmt(DATA.length)} boards`;
 }
 
 shuffleBtn.addEventListener('click', () => { resample(); render(); window.scrollTo({top: 0}); });
@@ -426,7 +464,7 @@ trayEl.addEventListener('click', e => {
 });
 trayCopy.addEventListener('click', () => {
   navigator.clipboard.writeText(tray.join(', ')).then(() => {
-    trayCopy.textContent = 'Copied!';
+    trayCopy.textContent = 'Copied';
     setTimeout(() => { trayCopy.textContent = 'Copy'; }, 1500);
   });
 });
@@ -442,12 +480,14 @@ renderTray();
 // ---- lightbox ----
 const lb = document.getElementById('lightbox');
 const lbImg = document.getElementById('lb-img');
-const lbCap = document.getElementById('lb-caption');
+const lbTitle = document.getElementById('lb-title');
+const lbCounter = document.getElementById('lb-counter');
 let lbBoard = 0, lbIdx = 0;
 function lbShow() {
   const m = DATA[lbBoard];
   lbImg.src = m.images[lbIdx];
-  lbCap.textContent = `${m.title} - image ${lbIdx + 1} of ${m.images.length}`;
+  lbTitle.textContent = m.title;
+  lbCounter.textContent = `${lbIdx + 1} / ${m.images.length}`;
 }
 function lbOpen(bi, ii) { lbBoard = bi; lbIdx = ii; lbShow(); lb.style.display = 'flex'; }
 function lbClose() { lb.style.display = 'none'; lbImg.src = ''; }
@@ -496,9 +536,9 @@ grid.addEventListener('click', e => {
   }
   if (t.classList.contains('copy-btn')) {
     navigator.clipboard.writeText(DATA[i].keywords).then(() => {
-      t.textContent = 'Copied!';
+      t.textContent = 'Copied';
       t.classList.add('copied');
-      setTimeout(() => { t.textContent = 'Copy Keywords'; t.classList.remove('copied'); }, 1500);
+      setTimeout(() => { t.textContent = 'Copy keywords'; t.classList.remove('copied'); }, 1500);
     });
     return;
   }
@@ -512,7 +552,7 @@ render();
 </script>
 '@
 
-$html = $html.Replace('__COUNT__', $count).Replace('__STAFF__', $staffCount).Replace('__DATA__', $dataJson).Replace('__BUILDDATE__', $buildDate)
+$html = $html.Replace('__COUNT__', $count.ToString('N0')).Replace('__STAFF__', $staffCount).Replace('__DATA__', $dataJson).Replace('__BUILDDATE__', $buildDate)
 $html | Out-File -Encoding utf8 $htmlOut
 Write-Host "HTML: $htmlOut ($([math]::Round((Get-Item $htmlOut).Length/1MB,1)) MB)"
 
