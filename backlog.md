@@ -36,6 +36,33 @@ lands in `build-moodboard-catalog.ps1` (or README) and gets rebuilt, never hand-
   README says the 512px previews are ~253 MB; on disk `moodboard-images/` is ~297 MB.
   Update the number (and re-check the per-size KB averages if convenient).
 
+- [ ] **Refine the mood taxonomy: subcategories + a second accuracy pass.**
+  The 10 mood values don't discriminate where it matters: the two fat buckets
+  (ethereal-dreamy and noir, ~700-800 boards each) swallow ~40% of the catalog, so
+  filtering to them barely narrows. Meanwhile cosmic-mystical (111) and cozy-folk (112)
+  are already tight. Subdivide the fat buckets only — don't inflate the whole vocabulary.
+  - **Ground the sub-vocabulary in the data**, same as the original pass: frequency
+    analysis of titles/keywords *within* each fat bucket (the titles already telegraph
+    subfamilies — Liminal Noir, Surveillance Noir, Pictorialist Noir...). Never invent
+    values the corpus doesn't support.
+  - **Orthogonality check before adopting a sub-value**: drop candidates that merely
+    restate another facet (amber-noir ≈ `mood:noir + palette:amber-gold`, already
+    expressible by cross-filtering); keep ones that add real signal (liminal,
+    surveillance, brutalist, pictorialist, glitch...).
+  - **Keep the hierarchy**: `mood` stays as-is for coarse browsing; add a nullable
+    `moodDetail`. UI hooks: indented sub-entries under each mood in the index rail
+    (design D), and a deeper token grammar (`mood:noir/liminal`) if the prompt-line
+    concept (design C) gets adopted into the search box.
+  - **Classification = the accuracy pass**: same dual Haiku vote + Sonnet arbiter with
+    enum-constrained output, extended provenance (`pass: 2`). Any board whose pass-2
+    mood disagrees with pass-1 goes to the arbiter with both labels — mood was one of
+    the noisier facets originally (82% single-run agreement pre-tie-break), so this
+    doubles as re-validation.
+  - **Generalizes next to medium**: film-photography is 1,321 boards (~37%) — the
+    fattest bucket in any facet and arguably the bigger win.
+  - Cost: comparable to the original full run (~8.4M subagent tokens, a few dollars);
+    plus generalizing `classify-new-boards.ps1` to run a scoped re-pass.
+
 - [ ] **Remove staff picks entirely — data, UI, and references.**
   The "24 staff picks" count in the masthead reads LLM-ish (element-count fixation);
   drop the feature rather than restyle it. Touchpoints, all in
