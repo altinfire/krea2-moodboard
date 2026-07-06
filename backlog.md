@@ -3,6 +3,21 @@
 Pre-announce polish. `index.html` and `krea2-moodboards.json` are generated — every fix
 lands in `build-moodboard-catalog.ps1` (or README) and gets rebuilt, never hand-edited.
 
+- [ ] **HIGH: fix renderer hard-freeze — remove `content-visibility: auto` from `.card`.**
+  Repro (verified 2026-07-06, Chrome on Windows): filter to mood=noir (721 boards),
+  fling-scroll → the tab hard-freezes in a layout loop. No recovery after 2+ minutes, no
+  network activity, and the renderer process keeps burning a full core even after the tab
+  is closed. Reproduced on the shipped `index.html`, not just prototypes.
+  Cause isolated by A/B tests: `content-visibility: auto; contain-intrinsic-size: auto
+  350px` on `.card` (§4 of the build script). The 350px estimate is ~30% below real card
+  heights and Chromium's estimate-swap thrashes into a permanent loop on fast scrolls
+  through large filtered views. Tested alternatives: `overflow-anchor: none` — still
+  freezes; fixed `contain-intrinsic-size: 480px 500px` — still stalls; **removing the two
+  declarations entirely — survives worst-case (Show all + 40-tick fling), recovers from
+  stalls**. Cost of removal: one-time full layout on Show-all (seconds); freeze is worse.
+  Fix in the build script template, rebuild with `-HtmlOnly`, re-run the fling-scroll
+  repro before closing. (Already applied to the three `design-*.html` prototypes.)
+
 - [ ] **Fix quirks mode: add a proper document skeleton to the HTML template.**
   The template in `build-moodboard-catalog.ps1` starts at `<meta charset>` with no
   `<!doctype html>`, so browsers render the page in quirks mode and the layout works by
