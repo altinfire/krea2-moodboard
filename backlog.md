@@ -37,6 +37,12 @@ lands in `build-moodboard-catalog.ps1` (or README) and gets rebuilt, never hand-
   Update the number (and re-check the per-size KB averages if convenient).
 
 - [ ] **Refine the mood taxonomy: subcategories + a second accuracy pass.**
+  *Status 2026-07-06: classification DONE — all 1,539 noir/ethereal boards have pass-2
+  records in `krea2-moodboard-mood-registers.json` (64% consensus, 80 mood corrections;
+  method + vocabulary in `taxonomy-mood.md`, script `classify-mood-registers.ps1`).
+  Registers are browsable in the design-d prototype rail. Remaining: fold `moodDetail`
+  into the build-script join + production UI once a design wins, and decide on extending
+  to `surreal` (533).*
   The 10 mood values don't discriminate where it matters: the two fat buckets
   (ethereal-dreamy and noir, ~700-800 boards each) swallow ~40% of the catalog, so
   filtering to them barely narrows. Meanwhile cosmic-mystical (111) and cozy-folk (112)
