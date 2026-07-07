@@ -3,6 +3,26 @@
 Pre-announce polish. `index.html` and `krea2-moodboards.json` are generated — every fix
 lands in `build-moodboard-catalog.ps1` (or README) and gets rebuilt, never hand-edited.
 
+- [x] **User moods + built-in-AI naming spike.**
+  *Shipped 2026-07-06: tray gains a "+ add tag" free-text input and "Save as mood"
+  (inline name entry, never `window.prompt`); saved moods render as a "your moods"
+  rail group (click = load into tray, replace semantics; × = delete; hidden at zero).
+  Storage: `krea-mb-user-moods` (`{id, name, desc, tags[], createdAt}`), existing keys
+  untouched. All user text routed through `esc()` (XSS-probed). No adr-002 — the
+  implementation follows the handoff defaults exactly (grid-filter-on-click and
+  merge-on-load both rejected as leaned; rename skipped as not cheap enough for v1).*
+  **Spike findings (GO — shipped):** Chrome's Prompt API is GA to plain web pages since
+  148 (verified on 149/Win11: `LanguageModel` on `self`, no origin trial). On a fresh
+  profile `availability()` = `downloadable`; `create()` needs user activation + secure
+  context (localhost qualifies, `file://` does not) and pulls Gemini Nano as a browser
+  component (~8 min here; docs require 22 GB free disk, model evicted below 10 GB free).
+  After download: `available`, survives reload, ~1.4 s per structured completion on this
+  hardware. `responseConstraint` JSON-schema output worked every try for
+  `{title, description}` (e.g. "Dreamscape Cel Shading"). Note: docs' `LanguageModel.params()`
+  is NOT exposed on 149 — feature-detect per method. The shipped "Suggest name" button
+  renders only when the model is already `available`, so the page never triggers a
+  visitor's multi-GB download; the description lands in `mood.desc` (rail tooltip).
+
 - [x] **HIGH: fix renderer hard-freeze — remove `content-visibility: auto` from `.card`.**
   *Done 2026-07-06 with the design-D port: the shipped template has no `content-visibility`;
   re-verified post-rebuild (mood=noir 60-tick fling + Show-all 40-tick fling, no freeze).

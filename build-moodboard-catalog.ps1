@@ -249,6 +249,8 @@ $html = @'
   .ix-row .ix-heart { color: var(--heart); font-size: 0.75rem; margin-right: 6px; }
   .ix-row.sub { padding-left: 16px; }
   .ix-row.sub .ix-label { font-size: 0.74rem; }
+  .mood-del { background: none; border: none; color: var(--faint); cursor: pointer; font-size: 0.95rem; padding: 0 0 0 7px; line-height: 1; transition: color 0.15s; }
+  .mood-del:hover { color: var(--heart); }
   #rail footer { font-family: var(--mono); color: var(--faint); font-size: 0.62rem; line-height: 1.7; letter-spacing: 0.02em; margin-top: 26px; padding-top: 14px; border-top: 1px solid var(--border); }
   #rail footer a { color: var(--dim); }
   #rail footer a:hover { color: var(--accent); }
@@ -296,6 +298,15 @@ $html = @'
   .chip-x:hover { opacity: 1; color: var(--heart); }
   #trayCopy { background: var(--accent); border: 1px solid var(--accent); color: var(--accent-ink); font-weight: 600; padding: 7px 14px; border-radius: 8px; font-size: 0.8rem; font-family: var(--sans); cursor: pointer; }
   #trayCopy:hover { background: #ecb96e; border-color: #ecb96e; }
+  #tagInput { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.73rem; font-family: var(--sans); padding: 4px 8px; width: 92px; }
+  #tagInput::placeholder { color: var(--faint); }
+  #tagInput:focus { outline: none; border-color: var(--accent-soft); }
+  #moodSaveRow { display: flex; gap: 8px; align-items: center; flex-basis: 100%; }
+  #moodNameInput { flex: 1; min-width: 140px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.8rem; font-family: var(--sans); padding: 6px 10px; }
+  #moodNameInput::placeholder { color: var(--faint); }
+  #moodNameInput:focus { outline: none; border-color: var(--accent-soft); }
+  #moodSaveConfirm { background: var(--accent); border: 1px solid var(--accent); color: var(--accent-ink); font-weight: 600; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-family: var(--sans); cursor: pointer; }
+  #moodSaveConfirm:hover { background: #ecb96e; border-color: #ecb96e; }
 
   /* ---- lightbox ---- */
   #lightbox { position: fixed; inset: 0; background: rgba(8,8,10,0.93); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 100; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
@@ -344,8 +355,15 @@ $html = @'
 <div id="tray" style="display:none">
   <span class="tray-label">Prompt keywords:</span>
   <div id="trayChips"></div>
+  <input id="tagInput" type="text" placeholder="+ add tag" title="Add your own keyword (Enter)">
   <button id="trayCopy">Copy</button>
+  <button class="verb" id="saveMoodBtn">Save as mood</button>
   <button class="verb" id="trayClear">Clear</button>
+  <div id="moodSaveRow" style="display:none">
+    <input id="moodNameInput" type="text" maxlength="80" placeholder="name this mood&hellip;">
+    <button id="moodSaveConfirm">Save</button>
+    <button class="verb" id="moodSaveCancel">Cancel</button>
+  </div>
 </div>
 
 <div id="lightbox">
@@ -427,6 +445,9 @@ ixNav.innerHTML = FACET_KEYS.map(k => `<section class="ix-group">
 </section>`).join('') + `<section class="ix-group">
   <h2>collection</h2>
   <button class="ix-row" id="favRow"><span class="ix-heart">&#9829;</span><span class="ix-label">favorites</span><span class="ix-leader"></span><span class="ix-count" id="favCount">0</span></button>
+</section><section class="ix-group" id="moodsGroup" style="display:none">
+  <h2>your moods</h2>
+  <div id="moodRows"></div>
 </section>`;
 
 function syncIndex() {
@@ -445,6 +466,9 @@ function applyFacet(k, v) {
 ixNav.addEventListener('click', e => {
   const row = e.target.closest('.ix-row');
   if (!row) return;
+  const del = e.target.closest('.mood-del');
+  if (del) { deleteMood(del.dataset.del); return; }
+  if (row.dataset.mood) { loadMood(row.dataset.mood); return; }
   if (row.id === 'favRow') { favOnly = !favOnly; sampleSet = null; syncIndex(); render(); return; }
   if (row.dataset.d) {
     if (sel.mood === row.dataset.v && selDetail === row.dataset.d) { sel.mood = null; selDetail = null; }
@@ -540,6 +564,7 @@ const trayCopy = document.getElementById('trayCopy');
 function renderTray() {
   trayEl.style.display = tray.length ? '' : 'none';
   document.body.classList.toggle('tray-open', tray.length > 0);
+  if (!tray.length) hideMoodSave();
   trayChips.innerHTML = tray.map(k =>
     `<span class="tray-chip">${esc(k)}<button class="chip-x" data-kw="${esc(k)}" title="Remove">&times;</button></span>`
   ).join('');
@@ -560,14 +585,122 @@ trayCopy.addEventListener('click', () => {
     setTimeout(() => { trayCopy.textContent = 'Copy'; }, 1500);
   });
 });
-document.getElementById('trayClear').addEventListener('click', () => {
-  tray.slice().forEach(kw => (pillIndex[kw] || []).forEach(p => p.classList.remove('sel')));
-  tray = [];
-  store('krea-mb-tray', tray);
-  renderTray();
+document.getElementById('trayClear').addEventListener('click', () => setTray([]));
+const tagInput = document.getElementById('tagInput');
+tagInput.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  tagInput.value.split(',').map(s => s.trim()).filter(Boolean).forEach(kw => { if (!tray.includes(kw)) toggleKw(kw); });
+  tagInput.value = '';
 });
 tray.forEach(kw => (pillIndex[kw] || []).forEach(p => p.classList.add('sel')));
 renderTray();
+
+// ---- user moods ----
+// {id, name, desc, tags[], createdAt} in localStorage; parse defensively — the live
+// origin already carries visitor state.
+let userMoods = load('krea-mb-user-moods', []);
+userMoods = (Array.isArray(userMoods) ? userMoods : [])
+  .filter(m => m && typeof m.id === 'string' && typeof m.name === 'string' && Array.isArray(m.tags))
+  .map(m => ({ ...m, tags: m.tags.filter(t => typeof t === 'string') }));
+const moodsGroup = document.getElementById('moodsGroup');
+const moodRowsEl = document.getElementById('moodRows');
+const saveMoodBtn = document.getElementById('saveMoodBtn');
+const moodSaveRow = document.getElementById('moodSaveRow');
+const moodNameInput = document.getElementById('moodNameInput');
+
+function renderUserMoods() {
+  moodsGroup.style.display = userMoods.length ? '' : 'none';
+  moodRowsEl.innerHTML = userMoods.map(m =>
+    `<div class="ix-row mood-row" data-mood="${esc(m.id)}" role="button" tabindex="0" title="${esc(m.desc || 'Load this mood into the prompt tray')}"><span class="ix-label">${esc(m.name)}</span><span class="ix-leader"></span><span class="ix-count">${fmt(m.tags.length)}</span><button class="mood-del" data-del="${esc(m.id)}" title="Delete this mood">&times;</button></div>`
+  ).join('');
+}
+function setTray(tags) {
+  tray.slice().forEach(kw => (pillIndex[kw] || []).forEach(p => p.classList.remove('sel')));
+  tray = tags.slice();
+  store('krea-mb-tray', tray);
+  tray.forEach(kw => (pillIndex[kw] || []).forEach(p => p.classList.add('sel')));
+  renderTray();
+}
+function loadMood(id) {
+  const m = userMoods.find(x => x.id === id);
+  if (m) setTray(m.tags);
+}
+function deleteMood(id) {
+  userMoods = userMoods.filter(m => m.id !== id);
+  store('krea-mb-user-moods', userMoods);
+  renderUserMoods();
+}
+function hideMoodSave() {
+  // getElementById, not the consts below: renderTray() calls this before they exist
+  document.getElementById('moodSaveRow').style.display = 'none';
+  document.getElementById('moodNameInput').value = '';
+  aiDesc = '';
+}
+function saveMood() {
+  const name = moodNameInput.value.trim();
+  if (!name || !tray.length) { moodNameInput.focus(); return; }
+  userMoods.push({
+    id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name, desc: aiDesc, tags: tray.slice(), createdAt: new Date().toISOString()
+  });
+  store('krea-mb-user-moods', userMoods);
+  renderUserMoods();
+  hideMoodSave();
+  saveMoodBtn.textContent = 'Saved';
+  setTimeout(() => { saveMoodBtn.textContent = 'Save as mood'; }, 1500);
+}
+saveMoodBtn.addEventListener('click', () => {
+  moodSaveRow.style.display = 'flex';
+  moodNameInput.focus();
+});
+document.getElementById('moodSaveConfirm').addEventListener('click', saveMood);
+document.getElementById('moodSaveCancel').addEventListener('click', hideMoodSave);
+moodNameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveMood();
+  else if (e.key === 'Escape') hideMoodSave();
+});
+ixNav.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('mood-row')) {
+    e.preventDefault(); loadMood(e.target.dataset.mood);
+  }
+});
+renderUserMoods();
+
+// ---- on-device AI mood naming (Chrome Prompt API, GA for pages since 148) ----
+// The button renders only when Gemini Nano is ALREADY installed ('available'):
+// 'downloadable' would make create() pull a multi-GB model, which a visitor
+// didn't ask for. Manual naming always remains.
+// var, not let: hideMoodSave() resets this and runs from the earlier renderTray()
+var aiDesc = '';
+if ('LanguageModel' in self) {
+  LanguageModel.availability().then(a => {
+    if (a !== 'available') return;
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'verb'; btn.id = 'moodSuggest';
+    btn.textContent = 'Suggest name';
+    btn.title = 'Name this mood with on-device AI (nothing leaves your machine)';
+    moodSaveRow.insertBefore(btn, document.getElementById('moodSaveCancel'));
+    let session = null;
+    btn.addEventListener('click', async () => {
+      if (!tray.length || btn.disabled) return;
+      btn.disabled = true; btn.textContent = 'Thinking…';
+      try {
+        session = session || await LanguageModel.create({ initialPrompts: [{ role: 'system',
+          content: 'You name aesthetic style moodboards. Given style keywords, reply with an evocative 2-4 word title (no quotes) and one sentence describing the aesthetic.' }] });
+        const out = await session.prompt('Keywords: ' + tray.join(', '), {
+          responseConstraint: { type: 'object',
+            properties: { title: { type: 'string' }, description: { type: 'string' } },
+            required: ['title', 'description'] } });
+        const parsed = JSON.parse(out);
+        moodNameInput.value = String(parsed.title || '').slice(0, 80);
+        aiDesc = String(parsed.description || '');
+        moodNameInput.focus();
+      } catch (e) { /* on-device model can fail mid-session; manual input is the fallback */ }
+      btn.disabled = false; btn.textContent = 'Suggest name';
+    });
+  }).catch(() => {});
+}
 
 // ---- lightbox ----
 const lb = document.getElementById('lightbox');

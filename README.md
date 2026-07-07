@@ -25,6 +25,14 @@ no server needed).
 - **Click keyword pills** to collect them into a floating prompt tray — mix keywords across
   boards, then Copy the combined comma-separated list into your prompt. **copy keywords**
   copies a single board's full set.
+- **Save the tray as a mood**: add your own free-text keywords with the tray's **+ add tag**
+  box (they copy out like any other chip), then **Save as mood** keeps the named set under
+  **your moods** in the rail — click a saved mood to reload its tags into the tray
+  (replacing what's there), **&times;** to delete. Persists in localStorage like favorites.
+- If Chrome's on-device AI model is already installed (Prompt API / Gemini Nano,
+  Chrome 148+), a **Suggest name** button appears in the save box and drafts a mood title
+  from your tags — fully on-device, nothing leaves your machine. The page never triggers
+  the model download itself.
 - **Click a thumbnail** for a lightbox (arrow keys navigate, Esc closes). **Click a facet
   label** on a card to filter by it. **Click the heart** to favorite; the favorites row in
   the rail narrows to your saved boards. Favorites and the tray persist in localStorage.
