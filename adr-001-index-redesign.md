@@ -1,6 +1,6 @@
 # ADR-001: Adopt the index-rail redesign (design D)
 
-Date: 2026-07-06 · Status: **accepted** (implementation pending — see `next-session.md`)
+Date: 2026-07-06 · Status: **accepted, implemented 2026-07-06** (ported into `build-moodboard-catalog.ps1` §4)
 
 ## Context
 
